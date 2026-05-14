@@ -1,48 +1,71 @@
-# Read and write Challenge
-def modify_file(input_file):
+# Read and Write Challenge (Improved Version)
+
+from pathlib import Path
+
+
+def modify_file(input_file: str, output_file: str = "output.txt", mode: str = "upper") -> None:
+    """
+    Reads a file, transforms content, and writes to output file.
+    Modes: upper | lower
+    """
+
     try:
-        # Automatically generate the output file name (you can customize this)
-        output_file = "output.txt"
+        input_path = Path(input_file).resolve()
 
-        # Open and read the input file
-        with open(input_file, 'r') as infile:
-            content = infile.read()
-        
-        # Modify the content (e.g., convert to uppercase)
-        modified_content = content.upper()
+        if not input_path.exists():
+            raise FileNotFoundError(f"File '{input_file}' not found.")
 
-        # Write the modified content to the output file
-        with open(output_file, 'w') as outfile:
-            outfile.write(modified_content)
+        # Read file
+        content = input_path.read_text(encoding="utf-8")
 
-        print(f"Modified content written to '{output_file}' successfully.")
-    
-    except FileNotFoundError:
-        print(f"Error: File '{input_file}' not found. Please check the file path and try again.")
-    except IOError:
-        print(f"Error: The file '{input_file}' could not be read. Please check the file and permissions.")
+        # Modify content based on mode
+        if mode == "lower":
+            modified_content = content.lower()
+        else:
+            modified_content = content.upper()
+
+        # Write output
+        output_path = Path(output_file).resolve()
+        output_path.write_text(modified_content, encoding="utf-8")
+
+        print(f"✔ Success! Output written to: {output_path} (mode: {mode})")
+
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+
+    except PermissionError:
+        print("Error: Permission denied when accessing file.")
+
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"Unexpected error: {e}")
 
-# Error handling lab
-# Asks the user for the input file path and ensures the file exists and can be read
-def get_input_file():
+
+def get_input_file() -> str:
+    """
+    Prompts user until a valid file path is provided.
+    """
+
     while True:
-        input_file_path = input("Enter the input file path: ")
+        path = input("Enter input file path (e.g. output.txt): ").strip()
 
-        # Checks if the file exists and is readable
-        try:
-            with open(input_file_path, 'r'):
-                break  # If File exists and can be read, exit the loop
-        except FileNotFoundError:
-            print(f"Error: File '{input_file_path}' not found. Please try again.")
-        except IOError:
-            print(f"Error: The file '{input_file_path}' could not be read. Please check the file and permissions.")
-    
-    return input_file_path
+        p = Path(path)
 
-# Gets the input file from the user
-input_file_path = get_input_file()
+        if p.exists() and p.is_file():
+            return str(p)
 
-# Call the function with the valid input file path
-modify_file(input_file_path)
+        print(f"Error: File '{path}' not found in current directory or path is invalid.")
+
+
+# Main execution
+if __name__ == "__main__":
+    input_file_path = get_input_file()
+
+    output_name = input("Enter output file name (default: output.txt): ").strip()
+    if not output_name:
+        output_name = "output.txt"
+
+    mode = input("Choose mode (upper/lower) [default: upper]: ").strip().lower()
+    if mode not in ["upper", "lower"]:
+        mode = "upper"
+
+    modify_file(input_file_path, output_name, mode)
